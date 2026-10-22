@@ -5,7 +5,10 @@ import {
   claimClub, 
   getServersWithStats, 
   getServerClubs,
-  saveDatabaseSync
+  saveDatabaseSync,
+  updateLineup,
+  resignClub,
+  Player
 } from './db.ts';
 import { buildProjectZip } from './zipService.ts';
 import fs from 'node:fs';
@@ -92,12 +95,40 @@ async function runTests() {
   }
   console.log(`✅ Test 8 Passed: Re-login restored club "${loginRes.activeClub.name}" and €${loginRes.activeClub.transferBudget.toLocaleString()} budget.`);
 
-  // Test 9: ZIP Archive Generation
+  // Test 9: Update Lineup with single Team-Wide Effort ('High')
+  const squad = claim1.club.squad;
+  const starting11 = squad.slice(0, 11).map((p: Player, idx: number) => ({
+    playerId: p.id,
+    position: idx === 0 ? 'GK' : idx <= 4 ? 'DEF' : idx <= 8 ? 'MID' : 'ATT',
+  }));
+
+  const updatedClub = updateLineup(userA.user.id, {
+    formation: '4-3-3',
+    teamEffort: 'High',
+    startingPlayers: starting11,
+  });
+
+  if (!updatedClub.lineup || updatedClub.lineup.teamEffort !== 'High' || updatedClub.lineup.formation !== '4-3-3') {
+    throw new Error('Failed to save team-wide effort or formation.');
+  }
+  if (updatedClub.lineup.startingPlayers.length !== 11) {
+    throw new Error('Lineup did not preserve 11 players.');
+  }
+  console.log(`✅ Test 9 Passed: Successfully updated lineup to 4-3-3 with teamEffort="High" and 11 starting players.`);
+
+  // Test 10: Resignation flow
+  const resignedClub = resignClub(userA.user.id);
+  if (resignedClub.managerId !== null) {
+    throw new Error('Resigned club still has managerId assigned.');
+  }
+  console.log(`✅ Test 10 Passed: Manager A successfully resigned from "${resignedClub.name}". Club is now open to claim.`);
+
+  // Test 11: ZIP Archive Generation
   const zipFile = await buildProjectZip();
   const stats = fs.statSync(zipFile);
-  console.log(`✅ Test 9 Passed: ZIP archive successfully built at "${zipFile}" (${(stats.size / 1024).toFixed(1)} KB).`);
+  console.log(`✅ Test 11 Passed: ZIP archive successfully built at "${zipFile}" (${(stats.size / 1024).toFixed(1)} KB).`);
 
-  console.log('--- 🏆 ALL 9 VERIFICATION TESTS PASSED SUCCESSFULLY! ---');
+  console.log('--- 🏆 ALL 11 VERIFICATION TESTS PASSED SUCCESSFULLY! ---');
 }
 
 runTests().catch((err) => {

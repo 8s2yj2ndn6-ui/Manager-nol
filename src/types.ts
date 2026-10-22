@@ -18,6 +18,37 @@ export interface ServerItem {
   totalClubs: number;
 }
 
+export type PlayerRank = 'Weak' | 'Average' | 'Strong' | 'Worldclass' | 'Top Tier';
+export type StaminaCondition = 'Great' | 'Tired' | 'Exhausted';
+export type PlayerPosition = 'GK' | 'CB' | 'LB' | 'RB' | 'CDM' | 'CM' | 'CAM' | 'LM' | 'RM' | 'LW' | 'RW' | 'ST';
+export type PositionCategory = 'Goalkeeper' | 'Defender' | 'Midfielder' | 'Attacker';
+
+export interface Player {
+  id: string;
+  number: number;
+  name: string;
+  position: PlayerPosition;
+  positionCategory: PositionCategory;
+  rank: PlayerRank;
+  age: number;
+  nationality: string;
+  preferredFoot: 'Right' | 'Left' | 'Both';
+  stamina: number;
+  condition: StaminaCondition;
+  pace: number;
+  shooting: number;
+  passing: number;
+  dribbling: number;
+  defending: number;
+  physical: number;
+}
+
+export interface LineupConfig {
+  formation: string;
+  teamEffort: 'Medium' | 'High' | 'Extreme';
+  startingPlayers: { playerId: string; position: string }[];
+}
+
 export interface ClubItem {
   id: string;
   serverId: string;
@@ -35,6 +66,9 @@ export interface ClubItem {
   managerUsername: string | null;
   transferBudget: number; // strictly 100,000,000
   claimedAt: string | null;
+  squad: Player[];
+  lineup: LineupConfig | null;
 }
 
 export type ViewState = 'landing' | 'servers' | 'clubs' | 'dashboard';
+export type DashboardTab = 'tactics' | 'squad' | 'overview' | 'servers';

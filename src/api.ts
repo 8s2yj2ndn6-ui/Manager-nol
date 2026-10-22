@@ -128,6 +128,25 @@ export const api = {
     }>('/api/manager/dashboard');
   },
 
+  async updateLineup(lineup: any) {
+    return request<{
+      success: boolean;
+      club: ClubItem;
+    }>('/api/clubs/lineup', {
+      method: 'POST',
+      body: JSON.stringify({ lineup }),
+    });
+  },
+
+  async resignClub() {
+    return request<{
+      success: boolean;
+      message: string;
+    }>('/api/clubs/resign', {
+      method: 'POST',
+    });
+  },
+
   async getStats() {
     return request<{
       app: string;

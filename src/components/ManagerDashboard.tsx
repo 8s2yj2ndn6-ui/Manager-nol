@@ -3,23 +3,20 @@ import {
   Shield, 
   Coins, 
   Server, 
-  User as UserIcon, 
   LogOut, 
   Building2, 
   Download, 
-  Calendar, 
   Users, 
-  Sparkles, 
   Activity, 
-  ArrowRight,
-  TrendingUp,
-  Sliders,
+  Share2,
   CheckCircle2,
-  Share2
+  AlertTriangle,
+  Award
 } from 'lucide-react';
-import { ClubItem, ServerItem, User } from '../types.ts';
+import { ClubItem, ServerItem, User, LineupConfig } from '../types.ts';
 import { TacticalPitchCanvas } from './TacticalPitchCanvas.tsx';
 import { LineupTab } from './LineupTab.tsx';
+import { SquadTab } from './SquadTab.tsx';
 
 interface ManagerDashboardProps {
   user: User;
@@ -38,7 +35,11 @@ export const ManagerDashboard: React.FC<ManagerDashboardProps> = ({
   onChangeServer,
   onOpenDownloadModal,
 }) => {
+  const [activeTab, setActiveTab] = useState<'tactics' | 'squad' | 'overview' | 'server'>('tactics');
   const [copiedLink, setCopiedLink] = useState(false);
+  const [resignModalOpen, setResignModalOpen] = useState(false);
+  const [resigning, setResigning] = useState(false);
+  const [resignError, setResignError] = useState<string | null>(null);
 
   const formatCurrency = (val: number) => {
     return new Intl.NumberFormat('en-IE', {
@@ -58,72 +59,136 @@ export const ManagerDashboard: React.FC<ManagerDashboardProps> = ({
     }
   };
 
+  const handleUpdateLineup = async (lineup: LineupConfig) => {
+    const res = await fetch('/api/clubs/lineup', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${localStorage.getItem('manager_nol_token')}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ lineup }),
+    });
+
+    if (!res.ok) {
+      const errData = await res.json().catch(() => ({}));
+      throw new Error(errData.error || 'Failed to update tactical lineup.');
+    }
+  };
+
+  const handleConfirmResign = async () => {
+    setResigning(true);
+    setResignError(null);
+    try {
+      const res = await fetch('/api/clubs/resign', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('manager_nol_token')}`,
+        },
+      });
+
+      if (!res.ok) {
+        const errData = await res.json().catch(() => ({}));
+        throw new Error(errData.error || 'Failed to resign from club.');
+      }
+
+      window.location.reload();
+    } catch (err: any) {
+      setResignError(err.message || 'Error executing contract resignation.');
+      setResigning(false);
+    }
+  };
+
+  const startingPlayerIds = new Set<string>(
+    club.lineup?.startingPlayers ? club.lineup.startingPlayers.map(p => p.playerId) : []
+  );
+
   return (
-    <div className="min-h-screen bg-[#070c09] text-slate-100 flex flex-col">
-      {/* Top Navigation Bar */}
-      <header className="sticky top-0 z-30 bg-[#09140e]/90 backdrop-blur-xl border-b border-white/10 px-4 sm:px-6 lg:px-8 py-3.5">
-        <div className="max-w-7xl mx-auto flex items-center justify-between">
-          {/* Logo & Server Tag */}
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-emerald-400 to-emerald-700 flex items-center justify-center text-slate-950 shadow-md shadow-emerald-500/20">
-              <Shield className="w-6 h-6 stroke-[2.5]" />
+    <div className="relative min-h-screen bg-[#040806] text-slate-100 flex flex-col selection:bg-emerald-500 selection:text-black">
+      {/* Ambient background lighting */}
+      <div className="fixed inset-0 pointer-events-none z-0">
+        <div className="ambient-light-orb absolute -top-40 right-1/4 w-[700px] h-[700px] bg-emerald-600/10 blur-[150px] rounded-full" />
+        <div className="absolute inset-0 bg-[radial-gradient(#123423_1px,transparent_1px)] [background-size:32px_32px] opacity-15" />
+      </div>
+
+      {/* Top Header Bar: 3-Zone Contract */}
+      <header className="relative z-30 liquid-glass sticky top-0 border-b border-white/[0.08]">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between gap-8">
+          {/* Zone 1: Brand & Server Wordmark */}
+          <div className="flex items-center gap-3 shrink-0">
+            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-emerald-400 to-emerald-700 flex items-center justify-center text-slate-950 shadow-md shadow-emerald-500/25 shrink-0">
+              <Shield className="w-5 h-5 stroke-[2.5]" />
             </div>
             <div>
               <div className="flex items-center gap-2">
-                <span className="font-['Big_Shoulders_Display'] text-2xl font-black uppercase text-white tracking-wider">
+                <span className="font-['Big_Shoulders_Display'] text-2xl sm:text-3xl font-black uppercase text-white tracking-wider">
                   Manager Nol
                 </span>
-                <span className="px-2 py-0.5 rounded bg-emerald-950 border border-emerald-500/40 text-[10px] font-mono text-emerald-400 font-bold">
+                <span className="font-mono text-xs font-bold text-emerald-400">
                   {server.code}
                 </span>
               </div>
-              <div className="text-[10px] font-mono text-slate-400">
+              <div className="text-[11px] font-mono text-slate-400">
                 Official Club Operations Dashboard
               </div>
             </div>
           </div>
 
-          {/* Manager Profile & Action Buttons */}
-          <div className="flex items-center gap-3">
+          {/* Zone 2: Manager & Club Context */}
+          <div className="hidden lg:flex items-center gap-2 text-xs font-mono text-slate-300">
+            <span className="text-slate-500">Club:</span>
+            <span className="text-white font-bold">{club.name}</span>
+            <span className="text-slate-600">·</span>
+            <span className="text-slate-500">Manager:</span>
+            <span className="text-emerald-400 font-bold">@{user.username}</span>
+            <span className="text-slate-600">·</span>
+            <span className="text-slate-400 tabular-nums">22 Squad</span>
+          </div>
+
+          {/* Zone 3: Actions */}
+          <div className="flex items-center gap-2.5 sm:gap-3 shrink-0">
             <button
               onClick={onOpenDownloadModal}
-              title="Download project ZIP for Bolt.new"
-              className="hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-xs text-slate-200 transition-colors cursor-pointer"
+              className="liquid-btn-secondary text-xs py-2 px-3.5"
             >
               <Download className="w-4 h-4 text-emerald-400" />
-              <span>Export ZIP</span>
+              <span className="hidden sm:inline">Export ZIP</span>
             </button>
 
             <button
               onClick={onChangeServer}
-              className="hidden md:flex items-center gap-2 px-3 py-1.5 rounded-xl bg-emerald-950/40 hover:bg-emerald-950/80 border border-emerald-500/30 text-xs text-emerald-300 transition-colors cursor-pointer"
+              className="hidden sm:inline-flex px-3 py-2 rounded-xl bg-white/[0.04] hover:bg-white/[0.08] border border-white/10 text-xs text-slate-300 hover:text-white transition-colors cursor-pointer items-center gap-1.5"
             >
-              <Server className="w-4 h-4 text-emerald-400" />
-              <span>Change Server</span>
+              <Server className="w-3.5 h-3.5 text-slate-400" />
+              <span>Servers</span>
+            </button>
+
+            <button
+              onClick={() => setResignModalOpen(true)}
+              className="px-3 py-2 rounded-xl bg-rose-950/40 hover:bg-rose-900/60 border border-rose-500/30 text-xs text-rose-300 transition-colors cursor-pointer font-semibold"
+            >
+              Resign
             </button>
 
             <button
               onClick={onLogout}
-              className="flex items-center gap-2 px-3.5 py-1.5 rounded-xl bg-red-950/40 hover:bg-red-900/60 border border-red-500/30 text-xs text-red-200 transition-colors cursor-pointer"
+              className="px-3 py-2 rounded-xl bg-white/[0.03] hover:bg-white/[0.08] border border-white/10 text-xs text-slate-300 hover:text-white transition-colors cursor-pointer flex items-center gap-1.5"
             >
-              <LogOut className="w-4 h-4 text-red-400" />
+              <LogOut className="w-4 h-4 text-slate-400" />
               <span className="hidden sm:inline">Logout</span>
             </button>
           </div>
         </div>
       </header>
 
-      {/* Main Dashboard Workspace */}
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 flex-1 w-full space-y-6">
-        {/* Manager Welcome & Verification Banner */}
-        <div className="relative rounded-3xl bg-gradient-to-r from-[#0d2218] via-[#09150f] to-[#0d2218] border border-emerald-500/30 p-6 sm:p-8 overflow-hidden shadow-2xl">
-          <div className="absolute top-0 right-0 -mt-12 -mr-12 w-64 h-64 bg-emerald-500/10 rounded-full blur-3xl pointer-events-none" />
-
+      {/* Main Container */}
+      <main className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 flex-1 w-full space-y-6">
+        {/* Club Master Hero Card */}
+        <div className="relative rounded-3xl liquid-glass-elevated p-6 sm:p-7 overflow-hidden border border-white/10">
           <div className="relative z-10 flex flex-col lg:flex-row items-start lg:items-center justify-between gap-6">
+            {/* Club Crest & Identity */}
             <div className="flex items-center gap-5">
-              {/* Club Crest */}
               <div
-                className="w-20 h-20 sm:w-24 sm:h-24 rounded-2xl flex items-center justify-center font-['Big_Shoulders_Display'] text-3xl sm:text-4xl font-black shadow-2xl border-2 shrink-0"
+                className="w-20 h-20 sm:w-22 sm:h-22 rounded-2xl flex items-center justify-center font-['Big_Shoulders_Display'] text-3xl sm:text-4xl font-black shadow-2xl border-2 shrink-0"
                 style={{
                   backgroundColor: club.primaryColor,
                   color: club.secondaryColor === '#ffffff' ? '#ffffff' : '#f8fafc',
@@ -134,34 +199,42 @@ export const ManagerDashboard: React.FC<ManagerDashboardProps> = ({
               </div>
 
               <div>
-                <div className="flex items-center gap-2 mb-1">
-                  <span className="px-2.5 py-0.5 rounded-full bg-emerald-500 text-slate-950 text-[10px] font-extrabold uppercase tracking-wider">
-                    HEAD COACH & MANAGER
-                  </span>
-                  <span className="text-xs font-mono text-emerald-400 font-semibold">
-                    Verified Active Contract
-                  </span>
+                <div className="flex items-center gap-2 mb-1 text-xs font-mono text-emerald-400 uppercase tracking-wider">
+                  <span className="font-bold">Head Coach & Manager</span>
+                  <span aria-hidden="true" className="text-slate-600">·</span>
+                  <span className="text-slate-300">Active Contract</span>
                 </div>
 
-                <h1 className="font-['Big_Shoulders_Display'] text-4xl sm:text-5xl lg:text-6xl font-black uppercase text-white tracking-tight leading-none">
+                <h1 className="font-['Big_Shoulders_Display'] text-4xl sm:text-5xl font-black uppercase text-white tracking-tight leading-none">
                   {club.name}
                 </h1>
 
-                <p className="text-slate-300 text-xs sm:text-sm font-mono mt-1.5 flex items-center gap-3 flex-wrap">
+                <p className="text-slate-400 text-xs sm:text-sm font-mono mt-1.5 flex items-center gap-3 flex-wrap">
                   <span>Manager: <strong className="text-white">@{user.username}</strong></span>
-                  <span className="text-slate-600">•</span>
+                  <span className="text-slate-600">·</span>
                   <span>Server: <strong className="text-emerald-400">{server.name} ({server.code})</strong></span>
-                  <span className="text-slate-600">•</span>
+                  <span className="text-slate-600">·</span>
                   <span>Est. {club.foundedYear}</span>
                 </p>
               </div>
             </div>
 
-            {/* Quick Share / Export Badge */}
-            <div className="flex items-center gap-3">
+            {/* Warchest & Actions */}
+            <div className="flex flex-wrap items-center gap-4">
+              {/* €100,000,000 Transfer Warchest */}
+              <div className="px-5 py-3 rounded-2xl bg-black/60 border border-amber-500/30">
+                <div className="text-[10px] font-mono uppercase text-amber-400 font-semibold flex items-center gap-1.5">
+                  <Coins className="w-3.5 h-3.5" />
+                  <span>Transfer Warchest</span>
+                </div>
+                <div className="font-['Big_Shoulders_Display'] text-3xl sm:text-4xl font-black text-amber-300 tracking-tight leading-none mt-0.5 tabular-nums">
+                  {formatCurrency(club.transferBudget)}
+                </div>
+              </div>
+
               <button
                 onClick={handleShareManagerCard}
-                className="px-4 py-2.5 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-xs font-semibold text-slate-300 flex items-center gap-2 transition-colors cursor-pointer"
+                className="liquid-btn-secondary text-xs py-3 px-4"
               >
                 {copiedLink ? (
                   <>
@@ -179,185 +252,240 @@ export const ManagerDashboard: React.FC<ManagerDashboardProps> = ({
           </div>
         </div>
 
-        {/* 4 Core Financial & Management Cards */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
-          {/* Card 1: STRICT €100,000,000 Transfer Budget */}
-          <div className="p-6 rounded-2xl bg-[#09150f] border border-amber-500/30 bg-gradient-to-b from-amber-950/20 to-transparent relative overflow-hidden group">
-            <div className="flex items-center justify-between text-amber-400 mb-3">
-              <span className="text-xs font-mono uppercase font-semibold tracking-wider">
-                Current Transfer Warchest
-              </span>
-              <div className="w-8 h-8 rounded-lg bg-amber-500/20 flex items-center justify-center">
-                <Coins className="w-4 h-4 text-amber-400" />
-              </div>
-            </div>
-
-            <div className="font-['Big_Shoulders_Display'] text-4xl font-black text-amber-300 tracking-tight">
-              {formatCurrency(club.transferBudget)}
-            </div>
-
-            <div className="mt-3 text-[11px] font-mono text-slate-400 flex items-center gap-1.5">
-              <span className="w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse" />
-              <span>Strict Rule: Exact €100,000,000 initialized</span>
-            </div>
-          </div>
-
-          {/* Card 2: Server World Status */}
-          <div className="p-6 rounded-2xl bg-[#09150f] border border-white/10 relative overflow-hidden group">
-            <div className="flex items-center justify-between text-slate-400 mb-3">
-              <span className="text-xs font-mono uppercase font-semibold tracking-wider">
-                World & League
-              </span>
-              <div className="w-8 h-8 rounded-lg bg-emerald-500/20 flex items-center justify-center">
-                <Server className="w-4 h-4 text-emerald-400" />
-              </div>
-            </div>
-
-            <div className="font-['Big_Shoulders_Display'] text-3xl font-extrabold text-white tracking-tight">
-              {server.code} • {server.continent}
-            </div>
-
-            <div className="mt-3 text-[11px] font-mono text-emerald-400 flex items-center gap-1.5">
-              <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
-              <span>{server.region} (~{server.basePing}ms)</span>
-            </div>
-          </div>
-
-          {/* Card 3: Stadium & Facilities */}
-          <div className="p-6 rounded-2xl bg-[#09150f] border border-white/10 relative overflow-hidden group">
-            <div className="flex items-center justify-between text-slate-400 mb-3">
-              <span className="text-xs font-mono uppercase font-semibold tracking-wider">
-                Home Stadium
-              </span>
-              <div className="w-8 h-8 rounded-lg bg-blue-500/20 flex items-center justify-center">
-                <Building2 className="w-4 h-4 text-blue-400" />
-              </div>
-            </div>
-
-            <div className="font-['Big_Shoulders_Display'] text-2xl font-extrabold text-white tracking-tight truncate" title={club.stadiumName}>
-              {club.stadiumName}
-            </div>
-
-            <div className="mt-3 text-[11px] font-mono text-slate-400">
-              Capacity: <strong className="text-white">{club.stadiumCapacity.toLocaleString()}</strong> seats
-            </div>
-          </div>
-
-          {/* Card 4: Manager Status */}
-          <div className="p-6 rounded-2xl bg-[#09150f] border border-white/10 relative overflow-hidden group">
-            <div className="flex items-center justify-between text-slate-400 mb-3">
-              <span className="text-xs font-mono uppercase font-semibold tracking-wider">
-                Manager Identity
-              </span>
-              <div className="w-8 h-8 rounded-lg bg-purple-500/20 flex items-center justify-center">
-                <UserIcon className="w-4 h-4 text-purple-400" />
-              </div>
-            </div>
-
-            <div className="font-['Big_Shoulders_Display'] text-3xl font-extrabold text-white tracking-tight">
-              @{user.username}
-            </div>
-
-            <div className="mt-3 text-[11px] font-mono text-slate-400">
-              Contract Signed: {club.claimedAt ? new Date(club.claimedAt).toLocaleDateString() : 'Active'}
-            </div>
-            
-            <button
-                onClick={async () => {
-                    if(confirm('Are you sure you want to resign from ' + club.name + '? You will have to claim a new club.')) {
-                        await fetch('/api/clubs/resign', { method: 'POST', headers: { 'Authorization': `Bearer ${localStorage.getItem('manager_nol_token')}` } });
-                        window.location.reload();
-                    }
-                }}
-                className="mt-4 w-full py-2 bg-red-900/50 hover:bg-red-800/60 text-red-200 text-xs font-bold uppercase rounded-lg transition-colors"
-            >
-                Resign
-            </button>
-          </div>
-        </div>
-        
-        {/* Lineup Tab */}
-        <div className="bg-[#09150f] border border-white/10 rounded-2xl p-6">
-            <LineupTab squad={club.squad} currentLineup={club.lineup} onUpdateLineup={async(l) => {
-                await fetch('/api/clubs/lineup', { 
-                    method: 'POST', 
-                    headers: { 'Authorization': `Bearer ${localStorage.getItem('manager_nol_token')}`, 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ lineup: l })
-                });
-                window.location.reload();
-            }} />
+        {/* Sub-Navigation Tabs */}
+        <div className="flex items-center gap-2 p-1.5 liquid-glass rounded-2xl border border-white/10 overflow-x-auto">
+          {[
+            { id: 'tactics', label: 'Tactics & Lineup', icon: Shield, badge: club.lineup?.formation || '4-4-2' },
+            { id: 'squad', label: 'Squad Roster', icon: Users, badge: `${club.squad?.length || 22} Players` },
+            { id: 'overview', label: 'Club Facilities & Stadium', icon: Building2, badge: club.stadiumName },
+            { id: 'server', label: 'Server Universe', icon: Server, badge: `${server.code} · 30 Clubs` },
+          ].map((tab) => {
+            const Icon = tab.icon;
+            const isActive = activeTab === tab.id;
+            return (
+              <button
+                key={tab.id}
+                type="button"
+                onClick={() => setActiveTab(tab.id as any)}
+                className={`flex items-center gap-2.5 px-4 py-2.5 rounded-xl text-xs uppercase font-extrabold tracking-wider transition-all cursor-pointer whitespace-nowrap ${
+                  isActive
+                    ? 'bg-emerald-500 text-slate-950 font-black shadow-md'
+                    : 'text-slate-400 hover:text-white hover:bg-white/[0.04]'
+                }`}
+              >
+                <Icon className={`w-4 h-4 ${isActive ? 'text-slate-950 stroke-[2.5]' : 'text-slate-400'}`} />
+                <span>{tab.label}</span>
+                <span className={`text-[10px] font-mono font-bold ${
+                  isActive ? 'text-slate-950' : 'text-slate-500'
+                }`}>
+                  ({tab.badge})
+                </span>
+              </button>
+            );
+          })}
         </div>
 
-        {/* Tactical Pitch Radar & Club Operations Preview */}
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-          {/* Tactical Pitch Visualizer */}
-          <div className="lg:col-span-8 bg-[#09150f] rounded-2xl border border-white/10 overflow-hidden flex flex-col">
-            <div className="px-5 py-4 border-b border-white/10 flex items-center justify-between bg-[#0a1811]">
-              <div className="flex items-center gap-2">
-                <Activity className="w-4 h-4 text-emerald-400" />
-                <h3 className="font-['Big_Shoulders_Display'] text-xl font-bold uppercase text-white">
-                  Tactical Training Pitch & Simulation
+        {/* TAB 1: TACTICS & LINEUP */}
+        {activeTab === 'tactics' && (
+          <LineupTab
+            squad={club.squad}
+            currentLineup={club.lineup}
+            onUpdateLineup={handleUpdateLineup}
+          />
+        )}
+
+        {/* TAB 2: SQUAD ROSTER (22 PLAYERS) */}
+        {activeTab === 'squad' && (
+          <SquadTab
+            squad={club.squad}
+            startingPlayerIds={startingPlayerIds}
+          />
+        )}
+
+        {/* TAB 3: CLUB OVERVIEW & GROUND */}
+        {activeTab === 'overview' && (
+          <div className="space-y-6">
+            {/* 4 Overview Metrics */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+              <div className="p-5 rounded-2xl liquid-glass border border-amber-500/30">
+                <div className="text-xs font-mono uppercase text-amber-400 font-semibold mb-1 flex items-center justify-between">
+                  <span>Transfer Budget</span>
+                  <Coins className="w-4 h-4" />
+                </div>
+                <div className="font-['Big_Shoulders_Display'] text-3xl font-black text-amber-300 tabular-nums">
+                  {formatCurrency(club.transferBudget)}
+                </div>
+                <div className="text-[11px] font-mono text-slate-400 mt-2">
+                  Guaranteed starting balance
+                </div>
+              </div>
+
+              <div className="p-5 rounded-2xl liquid-glass border border-white/10">
+                <div className="text-xs font-mono uppercase text-blue-400 font-semibold mb-1 flex items-center justify-between">
+                  <span>Home Ground</span>
+                  <Building2 className="w-4 h-4" />
+                </div>
+                <div className="font-['Big_Shoulders_Display'] text-2xl font-black text-white truncate" title={club.stadiumName}>
+                  {club.stadiumName}
+                </div>
+                <div className="text-[11px] font-mono text-slate-400 mt-2">
+                  Capacity: <strong className="text-white tabular-nums">{club.stadiumCapacity.toLocaleString()}</strong> fans
+                </div>
+              </div>
+
+              <div className="p-5 rounded-2xl liquid-glass border border-white/10">
+                <div className="text-xs font-mono uppercase text-emerald-400 font-semibold mb-1 flex items-center justify-between">
+                  <span>Squad Size</span>
+                  <Users className="w-4 h-4" />
+                </div>
+                <div className="font-['Big_Shoulders_Display'] text-3xl font-black text-white tabular-nums">
+                  22 Players
+                </div>
+                <div className="text-[11px] font-mono text-slate-400 mt-2">
+                  Full 22-man professional roster
+                </div>
+              </div>
+
+              <div className="p-5 rounded-2xl liquid-glass border border-white/10">
+                <div className="text-xs font-mono uppercase text-purple-400 font-semibold mb-1 flex items-center justify-between">
+                  <span>Contract Status</span>
+                  <Award className="w-4 h-4" />
+                </div>
+                <div className="font-['Big_Shoulders_Display'] text-2xl font-black text-white">
+                  Active
+                </div>
+                <div className="text-[11px] font-mono text-slate-400 mt-2">
+                  Claimed: {club.claimedAt ? new Date(club.claimedAt).toLocaleDateString() : 'Today'}
+                </div>
+              </div>
+            </div>
+
+            {/* Pitch Simulation Ground */}
+            <div className="rounded-3xl liquid-glass-elevated border border-white/10 overflow-hidden shadow-2xl">
+              <div className="px-6 py-4 border-b border-white/10 flex items-center justify-between bg-black/40">
+                <div className="flex items-center gap-2">
+                  <Activity className="w-4 h-4 text-emerald-400" />
+                  <h3 className="font-['Big_Shoulders_Display'] text-xl font-bold uppercase text-white">
+                    Club Training Ground & Ball Physics Canvas
+                  </h3>
+                </div>
+                <span className="text-xs font-mono text-slate-400 hidden sm:inline">
+                  Interactive simulation (Click pitch to strike ball)
+                </span>
+              </div>
+              <div className="relative h-[420px] w-full bg-[#06170f]">
+                <TacticalPitchCanvas className="w-full h-full cursor-crosshair" interactive={true} />
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* TAB 4: SERVER UNIVERSE */}
+        {activeTab === 'server' && (
+          <div className="rounded-3xl liquid-glass-elevated border border-white/10 p-6 sm:p-8 space-y-6">
+            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 pb-6 border-b border-white/10">
+              <div>
+                <h3 className="font-['Big_Shoulders_Display'] text-3xl font-black uppercase text-white">
+                  Server {server.code} · {server.name}
                 </h3>
+                <p className="text-xs font-mono text-slate-400 mt-1">
+                  Region: {server.region} · Continent: {server.continent} · Base Latency: ~{server.basePing}ms
+                </p>
               </div>
-              <span className="text-xs font-mono text-slate-400">
-                Interactive Ground (Click pitch to strike)
-              </span>
+
+              <button
+                onClick={onChangeServer}
+                className="liquid-btn-primary text-xs"
+              >
+                Browse All 30 Servers
+              </button>
             </div>
 
-            <div className="relative h-[380px] w-full">
-              <TacticalPitchCanvas className="w-full h-full cursor-crosshair" interactive={true} />
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+              <div className="p-5 rounded-2xl liquid-glass border border-white/5">
+                <div className="text-xs font-mono uppercase text-slate-400">Total Clubs in Server</div>
+                <div className="font-['Big_Shoulders_Display'] text-4xl font-black text-white mt-1 tabular-nums">
+                  30 Clubs
+                </div>
+                <div className="text-[11px] font-mono text-emerald-400 mt-1">
+                  1 claimed by you (@{user.username})
+                </div>
+              </div>
+
+              <div className="p-5 rounded-2xl liquid-glass border border-white/5">
+                <div className="text-xs font-mono uppercase text-slate-400">Global Server Architecture</div>
+                <div className="font-['Big_Shoulders_Display'] text-4xl font-black text-white mt-1 tabular-nums">
+                  30 Servers
+                </div>
+                <div className="text-[11px] font-mono text-slate-400 mt-1">
+                  900 total persistent clubs worldwide
+                </div>
+              </div>
+
+              <div className="p-5 rounded-2xl liquid-glass border border-white/5">
+                <div className="text-xs font-mono uppercase text-slate-400">Database Engine</div>
+                <div className="font-['Big_Shoulders_Display'] text-4xl font-black text-white mt-1">
+                  Active
+                </div>
+                <div className="text-[11px] font-mono text-emerald-400 mt-1">
+                  Atomic JSON Persistence (data/database.json)
+                </div>
+              </div>
             </div>
           </div>
+        )}
+      </main>
 
-          {/* Future Modules Ready Notice */}
-          <div className="lg:col-span-4 space-y-4">
-            <div className="p-6 rounded-2xl bg-[#09150f] border border-emerald-500/20 space-y-4">
-              <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded bg-emerald-950 border border-emerald-500/30 text-[10px] font-mono uppercase text-emerald-400">
-                <Sparkles className="w-3.5 h-3.5" />
-                <span>Next Update Ready</span>
-              </div>
-
-              <h4 className="font-['Big_Shoulders_Display'] text-2xl font-bold uppercase text-white leading-tight">
-                Transfer Market & Squad Tactics
-              </h4>
-
-              <p className="text-xs text-slate-400 leading-relaxed font-mono">
-                Your club is officially initialized with your <strong>€100,000,000</strong> warchest on server <strong>{server.code}</strong>.
-                Per project brief, player transfers, tactics, match schedules, and league tables are left ready for the next iteration.
-              </p>
-
-              <div className="pt-2 border-t border-white/5 space-y-2">
-                <button
-                  onClick={onOpenDownloadModal}
-                  className="w-full py-2.5 px-4 bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold uppercase text-xs tracking-wider rounded-xl transition-all flex items-center justify-center gap-2 cursor-pointer shadow-md shadow-emerald-500/20"
-                >
-                  <Download className="w-4 h-4" />
-                  <span>Download Project ZIP (Bolt.new)</span>
-                </button>
-
-                <button
-                  onClick={onChangeServer}
-                  className="w-full py-2.5 px-4 bg-white/5 hover:bg-white/10 text-slate-300 font-semibold uppercase text-xs tracking-wider rounded-xl transition-colors flex items-center justify-center gap-2 cursor-pointer"
-                >
-                  <Server className="w-4 h-4 text-emerald-400" />
-                  <span>Explore Other 29 Servers</span>
-                </button>
-              </div>
+      {/* Resignation Confirmation Modal */}
+      {resignModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/85 backdrop-blur-xl animate-fade-in">
+          <div className="relative w-full max-w-md liquid-glass-elevated border border-rose-500/40 rounded-3xl p-6 sm:p-7 shadow-[0_24px_64px_rgba(0,0,0,0.85)] text-slate-100">
+            <div className="w-12 h-12 rounded-2xl bg-rose-950/60 border border-rose-500/40 flex items-center justify-center text-rose-400 mb-4">
+              <AlertTriangle className="w-6 h-6" />
             </div>
 
-            {/* Persistence Guarantee Callout */}
-            <div className="p-4 rounded-xl bg-black/40 border border-white/5 text-xs font-mono text-slate-400 space-y-1">
-              <div className="text-slate-300 font-semibold flex items-center gap-1.5">
-                <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />
-                Database Persistence Active
+            <h3 className="font-['Big_Shoulders_Display'] text-2xl font-black uppercase text-white">
+              Confirm Resignation
+            </h3>
+
+            <p className="text-xs font-mono text-slate-300 mt-2 leading-relaxed">
+              Are you sure you want to resign as manager of <strong className="text-white">{club.name}</strong>?
+            </p>
+
+            <div className="mt-3 p-3 rounded-xl bg-black/40 border border-white/5 text-[11px] font-mono text-slate-400 space-y-1">
+              <div>· {club.name} will become open for other managers to claim.</div>
+              <div>· Your manager account (@{user.username}) remains fully intact.</div>
+              <div>· You will be able to claim any available club with a fresh €100,000,000 budget!</div>
+            </div>
+
+            {resignError && (
+              <div className="mt-3 p-3 rounded-xl bg-rose-950/80 border border-rose-500 text-rose-200 text-xs">
+                {resignError}
               </div>
-              <p className="text-[11px] leading-relaxed">
-                Your manager assignment, server location, and exact €100,000,000 budget are saved in <code>data/database.json</code> and will automatically restore when you log in again.
-              </p>
+            )}
+
+            <div className="mt-6 flex items-center justify-end gap-3">
+              <button
+                type="button"
+                disabled={resigning}
+                onClick={() => setResignModalOpen(false)}
+                className="liquid-btn-secondary text-xs uppercase"
+              >
+                Keep Contract
+              </button>
+
+              <button
+                type="button"
+                disabled={resigning}
+                onClick={handleConfirmResign}
+                className="px-5 py-2.5 rounded-xl bg-rose-600 hover:bg-rose-500 text-white text-xs font-black uppercase tracking-wider transition-colors shadow-lg shadow-rose-600/30 cursor-pointer disabled:opacity-50"
+              >
+                {resigning ? 'Resigning...' : 'Confirm Resignation'}
+              </button>
             </div>
           </div>
         </div>
-      </main>
+      )}
     </div>
   );
 };

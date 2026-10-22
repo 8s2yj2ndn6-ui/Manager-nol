@@ -1,13 +1,11 @@
 import React, { useState } from 'react';
 import { 
-  Server, 
   Wifi, 
   Search, 
   ChevronRight, 
   Shield, 
   LogOut, 
   Download, 
-  CheckCircle2, 
   Users, 
   Globe 
 } from 'lucide-react';
@@ -49,37 +47,44 @@ export const ServerSelection: React.FC<ServerSelectionProps> = ({
   const continents = ['All', 'Europe', 'Americas', 'Asia-Pacific', 'International'];
 
   return (
-    <div className="min-h-screen bg-[#070c09] text-slate-100 flex flex-col">
+    <div className="relative min-h-screen bg-[#040806] text-slate-100 flex flex-col selection:bg-emerald-500 selection:text-black">
+      {/* Subtle ambient lighting */}
+      <div className="fixed inset-0 pointer-events-none z-0">
+        <div className="ambient-light-orb absolute -top-40 right-1/4 w-[600px] h-[600px] bg-emerald-600/10 blur-[140px] rounded-full" />
+        <div className="absolute inset-0 bg-[radial-gradient(#123423_1px,transparent_1px)] [background-size:32px_32px] opacity-15" />
+      </div>
+
       {/* Top Header Bar */}
-      <header className="sticky top-0 z-30 bg-[#09140e]/90 backdrop-blur-xl border-b border-white/10 px-4 sm:px-6 lg:px-8 py-3.5">
-        <div className="max-w-7xl mx-auto flex items-center justify-between">
-          {/* Logo & Status */}
-          <div className="flex items-center gap-3">
-            <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-emerald-400 to-emerald-700 flex items-center justify-center text-slate-950 shadow-md shadow-emerald-500/20">
+      <header className="relative z-30 liquid-glass sticky top-0 border-b border-white/[0.08]">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between gap-8">
+          {/* Zone 1: Single text wordmark */}
+          <div className="flex items-center gap-3 shrink-0">
+            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-emerald-400 to-emerald-700 flex items-center justify-center text-slate-950 shadow-md shadow-emerald-500/25">
               <Shield className="w-5 h-5 stroke-[2.5]" />
             </div>
             <div>
-              <div className="font-['Big_Shoulders_Display'] text-2xl font-extrabold uppercase tracking-wider text-white leading-tight">
+              <span className="font-['Big_Shoulders_Display'] text-2xl sm:text-3xl font-black uppercase tracking-wider text-white">
                 Manager Nol
-              </div>
-              <div className="text-[10px] font-mono text-emerald-400 uppercase tracking-widest">
-                Server Selection • 30 Total
+              </span>
+              <div className="text-[11px] font-mono text-slate-400">
+                Server Hub · 30 Dedicated Worlds
               </div>
             </div>
           </div>
 
-          {/* User profile & actions */}
-          <div className="flex items-center gap-3">
-            <div className="hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-xl bg-black/40 border border-white/10 text-xs font-mono">
-              <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-              <span className="text-slate-400">Manager:</span>
-              <span className="text-white font-bold">@{user.username}</span>
-            </div>
+          {/* Zone 2: Manager Identity */}
+          <div className="hidden md:flex items-center gap-2 text-xs font-mono text-slate-300">
+            <span className="text-slate-500">Active License:</span>
+            <span className="text-white font-bold">@{user.username}</span>
+            <span className="text-slate-600">·</span>
+            <span className="text-emerald-400">Ready for Matchday</span>
+          </div>
 
+          {/* Zone 3: Actions */}
+          <div className="flex items-center gap-3 shrink-0">
             <button
               onClick={onOpenDownloadModal}
-              title="Download project ZIP for Bolt.new"
-              className="p-2 sm:px-3 sm:py-1.5 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-xs text-slate-200 flex items-center gap-2 transition-colors cursor-pointer"
+              className="liquid-btn-secondary text-xs py-2 px-3.5"
             >
               <Download className="w-4 h-4 text-emerald-400" />
               <span className="hidden sm:inline">Export ZIP</span>
@@ -87,9 +92,9 @@ export const ServerSelection: React.FC<ServerSelectionProps> = ({
 
             <button
               onClick={onLogout}
-              className="p-2 sm:px-3 sm:py-1.5 rounded-xl bg-red-950/40 hover:bg-red-900/60 border border-red-500/30 text-xs text-red-200 flex items-center gap-2 transition-colors cursor-pointer"
+              className="px-3 py-2 rounded-xl bg-white/[0.03] hover:bg-red-950/40 border border-white/10 hover:border-red-500/30 text-xs text-slate-300 hover:text-red-300 flex items-center gap-2 transition-colors cursor-pointer"
             >
-              <LogOut className="w-4 h-4 text-red-400" />
+              <LogOut className="w-4 h-4" />
               <span className="hidden sm:inline">Logout</span>
             </button>
           </div>
@@ -97,44 +102,43 @@ export const ServerSelection: React.FC<ServerSelectionProps> = ({
       </header>
 
       {/* Main Server Selection Area */}
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 flex-1 w-full space-y-6">
+      <main className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 flex-1 w-full space-y-6">
         {/* Title Banner */}
-        <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 border-b border-white/5 pb-6">
+        <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 border-b border-white/[0.08] pb-6">
           <div>
-            <div className="inline-flex items-center gap-2 px-2.5 py-1 rounded-md bg-emerald-950/60 border border-emerald-500/30 text-[11px] font-mono text-emerald-400 uppercase tracking-wider mb-2">
-              <Server className="w-3.5 h-3.5" />
-              <span>Step 1: Choose Your Competitive World</span>
+            <div className="text-xs font-mono uppercase tracking-widest text-emerald-400 mb-2">
+              Step 1 of 2 · World Selection
             </div>
             <h1 className="font-['Big_Shoulders_Display'] text-4xl sm:text-5xl font-black uppercase text-white tracking-tight">
               Select A Game Server
             </h1>
-            <p className="text-slate-400 text-sm mt-1">
-              Select any of the <strong className="text-white">30 official servers</strong> below. Each server hosts 30 independent clubs with a guaranteed €100,000,000 transfer warchest.
+            <p className="text-slate-400 text-sm mt-1 max-w-2xl">
+              Choose from 30 persistent global football ecosystems. Each server hosts exactly 30 unique clubs with an independent €100,000,000 transfer warchest.
             </p>
           </div>
 
-          <div className="flex items-center gap-2 text-xs font-mono bg-black/40 px-3.5 py-2 rounded-xl border border-white/10 text-slate-300">
+          <div className="flex items-center gap-2 text-xs font-mono text-slate-300 liquid-glass px-4 py-2.5 rounded-xl border border-white/10 shrink-0">
             <Globe className="w-4 h-4 text-emerald-400" />
-            <span>Total Servers: <strong className="text-emerald-400 font-bold">{servers.length} / 30 Active</strong></span>
+            <span>Active Universe: <strong className="text-emerald-400 font-bold tabular-nums">30 / 30 Online</strong></span>
           </div>
         </div>
 
         {/* Filter & Search Bar */}
-        <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4 bg-[#09150f] p-4 rounded-2xl border border-white/5">
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4 liquid-glass p-3.5 sm:p-4 rounded-2xl border border-white/10">
           {/* Search Input */}
           <div className="relative flex-1 max-w-md">
-            <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-500" />
+            <Search className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-500" />
             <input
               type="text"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               placeholder="Search by code (e.g. EU01, ENG02) or region..."
-              className="w-full pl-9 pr-4 py-2 bg-black/50 border border-white/10 rounded-xl text-xs sm:text-sm text-white placeholder-slate-500 focus:outline-none focus:border-emerald-500"
+              className="liquid-input w-full pl-10 pr-4 text-xs sm:text-sm"
             />
           </div>
 
           {/* Region Tabs */}
-          <div className="flex items-center gap-1.5 overflow-x-auto pb-1 sm:pb-0 scrollbar-none">
+          <div className="flex items-center gap-1.5 overflow-x-auto pb-1 sm:pb-0">
             {continents.map((cont) => (
               <button
                 key={cont}
@@ -142,7 +146,7 @@ export const ServerSelection: React.FC<ServerSelectionProps> = ({
                 className={`px-3 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap transition-colors cursor-pointer ${
                   selectedContinent === cont
                     ? 'bg-emerald-500 text-slate-950 font-bold shadow-sm'
-                    : 'bg-black/30 text-slate-400 hover:text-white hover:bg-black/50'
+                    : 'bg-white/[0.04] text-slate-400 hover:text-white hover:bg-white/[0.08]'
                 }`}
               >
                 {cont}
@@ -158,60 +162,58 @@ export const ServerSelection: React.FC<ServerSelectionProps> = ({
             return (
               <div
                 key={srv.id}
-                className={`relative group rounded-2xl bg-[#09150f] border transition-all duration-200 p-5 flex flex-col justify-between ${
+                className={`relative group rounded-2xl liquid-glass-card p-5 flex flex-col justify-between border ${
                   isUserCurrentServer
-                    ? 'border-emerald-500 shadow-[0_0_25px_rgba(16,185,129,0.2)] bg-[#0d2017]'
-                    : 'border-white/5 hover:border-emerald-500/40 hover:bg-[#0c1c14]'
+                    ? 'border-emerald-500 shadow-[0_0_30px_rgba(16,185,129,0.25)] bg-[#0d2217]/80'
+                    : 'border-white/[0.08]'
                 }`}
               >
                 {/* Top Row: Server Code & Status */}
                 <div className="flex items-start justify-between gap-3 mb-4">
                   <div className="flex items-center gap-3">
-                    <div className="px-3 py-1.5 rounded-xl bg-black/60 border border-emerald-500/30 text-emerald-400 font-['Big_Shoulders_Display'] text-2xl font-black tracking-wider">
+                    <div className="px-3 py-1.5 rounded-xl bg-black/70 border border-emerald-500/30 text-emerald-400 font-['Big_Shoulders_Display'] text-2xl font-black tracking-wider tabular-nums">
                       {srv.code}
                     </div>
                     <div>
-                      <h3 className="font-['Big_Shoulders_Display'] text-xl font-bold uppercase text-white leading-tight group-hover:text-emerald-400 transition-colors">
+                      <h3 className="font-['Big_Shoulders_Display'] text-2xl font-bold uppercase text-white leading-tight group-hover:text-emerald-400 transition-colors">
                         {srv.name}
                       </h3>
                       <p className="text-xs text-slate-400 font-mono">
-                        {srv.region}
+                        {srv.region} · {srv.continent}
                       </p>
                     </div>
                   </div>
 
-                  {/* Status Indicator */}
-                  <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-emerald-950/80 border border-emerald-500/30 text-[10px] font-mono text-emerald-300">
-                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
-                    <span>ONLINE</span>
-                  </div>
+                  <span className="text-[10px] font-mono font-bold uppercase tracking-wider text-emerald-400">
+                    Online
+                  </span>
                 </div>
 
                 {/* Metrics Row: Clubs Occupancy & Ping */}
                 <div className="grid grid-cols-2 gap-2 my-3 p-3 rounded-xl bg-black/40 border border-white/5 text-xs font-mono">
                   <div>
-                    <div className="text-[10px] text-slate-500 uppercase flex items-center gap-1">
-                      <Users className="w-3 h-3 text-slate-400" />
+                    <div className="text-[10px] text-slate-400 uppercase flex items-center gap-1">
+                      <Users className="w-3 h-3 text-slate-500" />
                       <span>Clubs</span>
                     </div>
-                    <div className="text-slate-200 font-bold mt-0.5">
+                    <div className="text-slate-200 font-bold mt-0.5 tabular-nums">
                       {srv.claimedClubs} / 30 Claimed
                     </div>
                   </div>
 
                   <div>
-                    <div className="text-[10px] text-slate-500 uppercase flex items-center gap-1">
-                      <Wifi className="w-3 h-3 text-slate-400" />
+                    <div className="text-[10px] text-slate-400 uppercase flex items-center gap-1">
+                      <Wifi className="w-3 h-3 text-slate-500" />
                       <span>Latency</span>
                     </div>
-                    <div className="text-emerald-400 font-bold mt-0.5">
+                    <div className="text-emerald-400 font-bold mt-0.5 tabular-nums">
                       ~{srv.basePing} ms
                     </div>
                   </div>
                 </div>
 
-                {/* Progress bar for clubs claim */}
-                <div className="w-full bg-black/60 rounded-full h-1.5 mb-4 overflow-hidden">
+                {/* Occupancy bar */}
+                <div className="w-full bg-black/70 rounded-full h-1.5 mb-4 overflow-hidden border border-white/5">
                   <div 
                     className="bg-gradient-to-r from-emerald-500 to-emerald-300 h-1.5 rounded-full transition-all"
                     style={{ width: `${Math.max(6, (srv.claimedClubs / 30) * 100)}%` }}
@@ -224,10 +226,10 @@ export const ServerSelection: React.FC<ServerSelectionProps> = ({
                   className={`w-full py-2.5 px-4 rounded-xl text-xs uppercase font-extrabold tracking-wider transition-all flex items-center justify-center gap-2 cursor-pointer ${
                     isUserCurrentServer
                       ? 'bg-emerald-500 text-slate-950 hover:bg-emerald-400 shadow-md shadow-emerald-500/25'
-                      : 'bg-white/5 hover:bg-emerald-500 hover:text-slate-950 text-slate-200 border border-white/10 hover:border-emerald-500'
+                      : 'liquid-btn-secondary w-full hover:border-emerald-500/60 hover:text-white'
                   }`}
                 >
-                  <span>{isUserCurrentServer ? 'Enter My Server' : 'Select Server'}</span>
+                  <span>{isUserCurrentServer ? 'Resume Server' : 'Select Server'}</span>
                   <ChevronRight className="w-4 h-4 transition-transform group-hover:translate-x-1" />
                 </button>
               </div>
@@ -236,11 +238,11 @@ export const ServerSelection: React.FC<ServerSelectionProps> = ({
         </div>
 
         {filteredServers.length === 0 && (
-          <div className="text-center py-12 bg-[#09150f] rounded-2xl border border-white/5">
-            <p className="text-slate-400 text-sm">No servers match your search &ldquo;{search}&rdquo;.</p>
+          <div className="text-center py-12 liquid-glass rounded-2xl border border-white/10">
+            <p className="text-slate-400 text-sm">No servers match your query &ldquo;{search}&rdquo;.</p>
             <button
               onClick={() => { setSearch(''); setSelectedContinent('All'); }}
-              className="mt-3 px-4 py-2 bg-emerald-500/20 text-emerald-400 text-xs font-semibold rounded-lg hover:bg-emerald-500/30"
+              className="mt-3 liquid-btn-secondary text-xs"
             >
               Reset Filters
             </button>

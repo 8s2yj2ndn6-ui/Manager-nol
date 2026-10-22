@@ -1,6 +1,6 @@
 import { SERVERS_LIST } from './serverNames.ts';
 
-export interface ClubRecord {
+export interface SeedClubRecord {
   id: string;
   serverId: string;
   serverCode: string;
@@ -132,8 +132,8 @@ const NAMING_MODIFIERS: Record<string, { roots: string[]; suffixes: string[]; ci
   }
 };
 
-export function generateAllClubs(): ClubRecord[] {
-  const allClubs: ClubRecord[] = [];
+export function generateAllClubs(): SeedClubRecord[] {
+  const allClubs: SeedClubRecord[] = [];
 
   for (const server of SERVERS_LIST) {
     const preset = REGIONAL_CLUB_PRESETS[server.id];

@@ -1,17 +1,13 @@
 import React, { useState } from 'react';
 import { 
   Shield, 
-  Globe2, 
-  Coins, 
-  Play, 
   Download, 
-  Layers, 
-  Award, 
   ChevronRight, 
-  Flame, 
-  Sparkles,
-  Server,
-  Zap
+  SlidersHorizontal,
+  Compass,
+  Zap,
+  Layers,
+  Sparkles
 } from 'lucide-react';
 import { TacticalPitchCanvas } from './TacticalPitchCanvas.tsx';
 
@@ -26,166 +22,197 @@ export const LandingPage: React.FC<LandingPageProps> = ({
   onOpenDownloadModal,
   serverCount = 30,
 }) => {
-  const [pitchMode, setPitchMode] = useState<'standard' | 'focused'>('standard');
+  const [pitchIntensity, setPitchIntensity] = useState<'full' | 'ambient'>('full');
 
   return (
-    <div className="relative min-h-screen bg-[#070c09] text-slate-100 flex flex-col overflow-x-hidden">
-      {/* Background Subtle Gradient & Mesh */}
-      <div className="fixed inset-0 pointer-events-none z-0">
-        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[1000px] h-[550px] bg-emerald-600/10 blur-[140px] rounded-full" />
-        <div className="absolute bottom-0 right-0 w-[600px] h-[450px] bg-emerald-950/20 blur-[120px] rounded-full" />
-        <div className="absolute inset-0 bg-[radial-gradient(#153223_1px,transparent_1px)] [background-size:24px_24px] opacity-25" />
+    <div className="relative min-h-screen bg-[#040806] text-slate-100 flex flex-col overflow-x-hidden selection:bg-emerald-500 selection:text-black">
+      {/* Cinematic Animated Ambient Lighting */}
+      <div className="fixed inset-0 pointer-events-none z-0 overflow-hidden">
+        <div className="ambient-light-orb absolute -top-40 left-1/3 w-[650px] h-[650px] bg-gradient-to-br from-emerald-600/18 via-emerald-800/10 to-transparent blur-[140px] rounded-full" />
+        <div className="ambient-light-orb-delayed absolute top-1/2 -right-28 w-[500px] h-[500px] bg-gradient-to-tl from-emerald-500/12 via-teal-900/10 to-transparent blur-[130px] rounded-full" />
+        <div className="absolute bottom-0 left-0 w-[450px] h-[350px] bg-emerald-950/20 blur-[100px] rounded-full" />
+        {/* Subtle pitch grid lines */}
+        <div className="absolute inset-0 bg-[radial-gradient(#123423_1px,transparent_1px)] [background-size:32px_32px] opacity-20" />
       </div>
 
-      {/* Top Navigation */}
-      <header className="relative z-20 border-b border-white/5 bg-[#08100c]/80 backdrop-blur-xl sticky top-0">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between">
-          {/* Logo */}
-          <div className="flex items-center gap-3">
+      {/* Top Navigation Bar: Strict 3-zone contract */}
+      <header className="relative z-30 liquid-glass sticky top-0 border-b border-white/[0.08]">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between gap-8">
+          {/* Zone 1: Single text element Brand Zone */}
+          <div className="flex items-center gap-3 shrink-0">
             <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-emerald-400 to-emerald-700 flex items-center justify-center text-slate-950 shadow-md shadow-emerald-500/25">
-              <Shield className="w-6 h-6 stroke-[2.5]" />
+              <Shield className="w-5 h-5 stroke-[2.5]" />
             </div>
-            <div>
-              <span className="font-['Big_Shoulders_Display'] text-3xl font-extrabold uppercase tracking-wider text-white">
-                Manager Nol
-              </span>
-              <div className="flex items-center gap-2">
-                <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
-                <span className="text-[10px] font-mono uppercase tracking-widest text-emerald-400 font-semibold">
-                  {serverCount} Servers Online
-                </span>
-              </div>
-            </div>
+            <span className="font-['Big_Shoulders_Display'] text-3xl font-black uppercase tracking-wider text-white whitespace-nowrap">
+              Manager Nol
+            </span>
           </div>
 
-          {/* Action Buttons */}
-          <div className="flex items-center gap-2 sm:gap-4">
+          {/* Zone 2: Clean single-line text navigation links */}
+          <nav className="hidden md:flex items-center gap-8 text-sm font-medium text-slate-300">
+            <a href="#tactics" className="hover:text-emerald-400 transition-colors whitespace-nowrap">
+              Tactical Engine
+            </a>
+            <a href="#servers" className="hover:text-emerald-400 transition-colors whitespace-nowrap">
+              30 Dedicated Servers
+            </a>
+            <a href="#warchest" className="hover:text-emerald-400 transition-colors whitespace-nowrap">
+              €100M Warchest
+            </a>
+            <a href="#formations" className="hover:text-emerald-400 transition-colors whitespace-nowrap">
+              15 Formations
+            </a>
+          </nav>
+
+          {/* Zone 3: Primary Action Controls */}
+          <div className="flex items-center gap-3 shrink-0">
             <button
               onClick={onOpenDownloadModal}
-              className="hidden md:flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-semibold tracking-wider uppercase bg-white/5 hover:bg-white/10 border border-white/10 text-slate-200 transition-colors"
+              className="hidden sm:inline-flex liquid-btn-secondary"
             >
               <Download className="w-4 h-4 text-emerald-400" />
-              <span>Export ZIP for Bolt.new</span>
+              <span>Export ZIP</span>
             </button>
 
             <button
               onClick={() => onOpenAuth('login')}
-              className="px-4 py-2.5 rounded-xl text-xs uppercase font-bold tracking-wider text-slate-200 hover:text-white hover:bg-white/5 transition-colors cursor-pointer"
+              className="px-4 py-2 text-xs font-bold uppercase tracking-wider text-slate-300 hover:text-white transition-colors cursor-pointer"
             >
               Sign In
             </button>
 
             <button
               onClick={() => onOpenAuth('register')}
-              className="px-5 py-2.5 rounded-xl text-xs uppercase font-extrabold tracking-wider bg-emerald-500 hover:bg-emerald-400 text-slate-950 transition-all shadow-lg shadow-emerald-500/20 flex items-center gap-2 cursor-pointer group"
+              className="liquid-btn-primary"
             >
-              <span>Play Now</span>
-              <ChevronRight className="w-4 h-4 transition-transform group-hover:translate-x-0.5" />
+              <span>Enter League</span>
+              <ChevronRight className="w-4 h-4" />
             </button>
           </div>
         </div>
       </header>
 
       {/* Hero Section */}
-      <section className="relative z-10 pt-10 pb-16 lg:pt-16 lg:pb-24 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex-1">
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 items-center">
-          {/* Hero Left Content */}
-          <div className="lg:col-span-7 space-y-6 text-center lg:text-left">
-            <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-emerald-950/60 border border-emerald-500/30 text-emerald-400 text-xs font-mono font-medium">
-              <Sparkles className="w-3.5 h-3.5" />
-              <span>THE MODERN TACTICAL FOOTBALL SIMULATION</span>
+      <section className="relative z-10 pt-12 pb-20 lg:pt-20 lg:pb-28 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex-1">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
+          {/* Hero Left Typography */}
+          <div className="lg:col-span-6 space-y-7 text-center lg:text-left">
+            <div className="flex items-center justify-center lg:justify-start gap-2 text-xs font-mono tracking-wider text-emerald-400 uppercase">
+              <span>Dynamic Tactical Simulation</span>
+              <span aria-hidden="true" className="text-slate-600">·</span>
+              <span className="tabular-nums">{serverCount} Live Servers</span>
+              <span aria-hidden="true" className="text-slate-600">·</span>
+              <span>Multi-User Roster</span>
             </div>
 
-            <h1 className="font-['Big_Shoulders_Display'] text-5xl sm:text-6xl md:text-7xl lg:text-8xl font-black uppercase tracking-tight text-white leading-[0.92]">
-              TAKE THE REINS. <br />
-              <span className="text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 via-emerald-300 to-amber-300">
-                OWN YOUR DYNASTY.
+            <h1 className="font-['Big_Shoulders_Display'] text-5xl sm:text-6xl md:text-7xl lg:text-8xl font-black uppercase tracking-tight text-white leading-[0.92] text-balance">
+              TACTICAL SUPREMACY. <br />
+              <span className="text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 via-teal-300 to-emerald-200">
+                PRO FOOTBALL OWNERSHIP.
               </span>
             </h1>
 
-            <p className="text-slate-300 text-base sm:text-lg max-w-2xl font-light leading-relaxed">
-              Step into high-stakes football club management across <strong className="text-white font-semibold">30 dedicated servers</strong>. 
-              Claim your seat at the helm of <strong className="text-white font-semibold">900 unique clubs</strong> with an instant 
-              <strong className="text-emerald-400 font-semibold"> €100,000,000 transfer warchest</strong>.
+            <p className="text-slate-300 text-base sm:text-lg max-w-xl font-normal leading-relaxed text-balance">
+              Take the managerial hot seat across 30 persistent servers with 900 unique clubs. 
+              Deploy master formations, command unified squad effort, and lead your 22-man roster to European glory.
             </p>
 
-            {/* Quick Metrics Bar */}
-            <div className="grid grid-cols-3 gap-3 sm:gap-4 py-2 max-w-xl mx-auto lg:mx-0">
-              <div className="p-3.5 rounded-xl bg-black/40 border border-white/5 backdrop-blur-sm">
-                <div className="text-2xl sm:text-3xl font-extrabold font-['Big_Shoulders_Display'] text-emerald-400">
+            {/* Metrics Strip */}
+            <div className="grid grid-cols-3 gap-4 pt-2 max-w-lg mx-auto lg:mx-0">
+              <div className="liquid-glass rounded-2xl p-4 text-center lg:text-left">
+                <div className="font-['Big_Shoulders_Display'] text-4xl font-extrabold text-white tabular-nums leading-none">
                   30
                 </div>
-                <div className="text-[11px] font-mono text-slate-400 uppercase tracking-wider">
+                <div className="text-xs font-mono text-slate-400 mt-1 uppercase tracking-wider">
                   Live Servers
                 </div>
               </div>
 
-              <div className="p-3.5 rounded-xl bg-black/40 border border-white/5 backdrop-blur-sm">
-                <div className="text-2xl sm:text-3xl font-extrabold font-['Big_Shoulders_Display'] text-white">
+              <div className="liquid-glass rounded-2xl p-4 text-center lg:text-left">
+                <div className="font-['Big_Shoulders_Display'] text-4xl font-extrabold text-emerald-400 tabular-nums leading-none">
                   900
                 </div>
-                <div className="text-[11px] font-mono text-slate-400 uppercase tracking-wider">
+                <div className="text-xs font-mono text-slate-400 mt-1 uppercase tracking-wider">
                   Unique Clubs
                 </div>
               </div>
 
-              <div className="p-3.5 rounded-xl bg-black/40 border border-white/5 backdrop-blur-sm">
-                <div className="text-2xl sm:text-3xl font-extrabold font-['Big_Shoulders_Display'] text-amber-400">
+              <div className="liquid-glass rounded-2xl p-4 text-center lg:text-left">
+                <div className="font-['Big_Shoulders_Display'] text-4xl font-extrabold text-amber-300 tabular-nums leading-none">
                   €100M
                 </div>
-                <div className="text-[11px] font-mono text-slate-400 uppercase tracking-wider">
+                <div className="text-xs font-mono text-slate-400 mt-1 uppercase tracking-wider">
                   Club Warchest
                 </div>
               </div>
             </div>
 
-            {/* CTA Buttons */}
-            <div className="flex flex-col sm:flex-row items-center justify-center lg:justify-start gap-4 pt-2">
+            {/* CTAs */}
+            <div className="flex flex-col sm:flex-row items-center justify-center lg:justify-start gap-4 pt-4">
               <button
                 onClick={() => onOpenAuth('register')}
-                className="w-full sm:w-auto px-8 py-4 rounded-xl text-sm font-extrabold uppercase tracking-wider bg-emerald-500 hover:bg-emerald-400 text-slate-950 transition-all shadow-[0_0_30px_rgba(16,185,129,0.35)] flex items-center justify-center gap-3 cursor-pointer group"
+                className="liquid-btn-primary w-full sm:w-auto text-base px-7 py-3.5"
               >
-                <Play className="w-5 h-5 fill-slate-950 stroke-none" />
-                <span>Create Manager License</span>
+                <span>Claim Your Club</span>
+                <ChevronRight className="w-5 h-5" />
               </button>
 
               <button
                 onClick={() => onOpenAuth('login')}
-                className="w-full sm:w-auto px-8 py-4 rounded-xl text-sm font-bold uppercase tracking-wider bg-[#101e16] hover:bg-[#162a1f] border border-emerald-500/30 text-white transition-all flex items-center justify-center gap-2 cursor-pointer"
+                className="liquid-btn-secondary w-full sm:w-auto text-sm px-6 py-3.5"
               >
-                <span>Existing Manager Sign In</span>
+                <span>Returning Manager Login</span>
               </button>
             </div>
           </div>
 
-          {/* Hero Right - Interactive Tactical Pitch Preview */}
-          <div className="lg:col-span-5">
-            <div className="relative rounded-3xl p-1 bg-gradient-to-b from-emerald-500/30 via-white/5 to-transparent shadow-2xl">
-              <div className="relative bg-[#09140e] rounded-[22px] overflow-hidden border border-emerald-500/20 shadow-inner">
-                {/* Tactical Bezel Top */}
-                <div className="px-4 py-3 bg-[#0a1811] border-b border-white/10 flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <span className="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-ping" />
-                    <span className="text-xs font-mono uppercase font-semibold text-emerald-400 tracking-wider">
-                      Live Tactical Radar
-                    </span>
+          {/* Hero Right: Cinematic Interactive Tactical Board */}
+          <div className="lg:col-span-6 relative">
+            <div className="liquid-glass-elevated rounded-3xl p-5 sm:p-6 border border-white/10 shadow-[0_24px_64px_rgba(0,0,0,0.8)]">
+              {/* Board Header */}
+              <div className="flex items-center justify-between pb-4 mb-4 border-b border-white/[0.08]">
+                <div className="flex items-center gap-3">
+                  <div className="w-8 h-8 rounded-lg bg-emerald-950 border border-emerald-500/30 flex items-center justify-center text-emerald-400">
+                    <SlidersHorizontal className="w-4 h-4" />
                   </div>
-                  <span className="text-[11px] text-slate-400 font-mono">
-                    Click pitch to strike
-                  </span>
+                  <div>
+                    <h2 className="font-['Big_Shoulders_Display'] text-2xl font-bold uppercase text-white leading-none">
+                      Matchday Tactical Pitch
+                    </h2>
+                    <div className="text-xs font-mono text-slate-400">
+                      Live Ball Physics & Position Movement
+                    </div>
+                  </div>
                 </div>
 
-                {/* Pitch Canvas Container */}
-                <div className="relative h-[360px] sm:h-[420px] w-full">
-                  <TacticalPitchCanvas className="w-full h-full cursor-crosshair" interactive={true} />
-                  
-                  {/* Subtle Tactical Overlay HUD */}
-                  <div className="absolute bottom-3 left-3 right-3 pointer-events-none flex items-center justify-between bg-black/60 backdrop-blur-md px-3.5 py-2 rounded-xl border border-white/10 text-[11px] font-mono text-slate-300">
-                    <span className="flex items-center gap-1.5">
-                      <span className="w-2 h-2 rounded-full bg-emerald-500" /> Formation: 4-3-3 Attack
-                    </span>
-                    <span className="text-amber-400 font-semibold">Strict €100M Cap</span>
-                  </div>
+                {/* Intensity Toggle */}
+                <div className="flex items-center gap-1 p-1 bg-black/50 border border-white/10 rounded-lg">
+                  <button
+                    onClick={() => setPitchIntensity('full')}
+                    className={`px-2.5 py-1 text-xs font-medium rounded-md transition-colors ${
+                      pitchIntensity === 'full' ? 'bg-emerald-500 text-slate-950 font-bold' : 'text-slate-400 hover:text-white'
+                    }`}
+                  >
+                    Match Pace
+                  </button>
+                  <button
+                    onClick={() => setPitchIntensity('ambient')}
+                    className={`px-2.5 py-1 text-xs font-medium rounded-md transition-colors ${
+                      pitchIntensity === 'ambient' ? 'bg-emerald-500 text-slate-950 font-bold' : 'text-slate-400 hover:text-white'
+                    }`}
+                  >
+                    Drill Pace
+                  </button>
+                </div>
+              </div>
+
+              {/* Pitch Canvas Container */}
+              <div className="relative rounded-2xl overflow-hidden border border-emerald-500/20 h-[380px] sm:h-[420px] bg-[#07170e]">
+                <TacticalPitchCanvas intensity={pitchIntensity} interactive={true} />
+                <div className="absolute bottom-3 left-3 right-3 flex items-center justify-between pointer-events-none text-xs font-mono text-emerald-300/80 bg-black/60 backdrop-blur-md px-3 py-1.5 rounded-lg border border-white/10">
+                  <span>Formation 4-3-3 Attack</span>
+                  <span className="tabular-nums">64% Possession</span>
+                  <span>Effort: High</span>
                 </div>
               </div>
             </div>
@@ -193,100 +220,110 @@ export const LandingPage: React.FC<LandingPageProps> = ({
         </div>
       </section>
 
-      {/* Feature Pillar Grid */}
-      <section className="relative z-10 py-16 bg-[#060c08] border-t border-white/5">
+      {/* Tactical Pillars Section */}
+      <section id="tactics" className="relative z-10 py-16 border-t border-white/[0.08] bg-black/30">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center max-w-2xl mx-auto mb-12">
-            <h2 className="font-['Big_Shoulders_Display'] text-4xl sm:text-5xl font-extrabold uppercase text-white tracking-wide">
-              Architected For True Football Enthusiasts
+          <div className="text-center max-w-2xl mx-auto mb-14">
+            <div className="text-xs font-mono uppercase tracking-widest text-emerald-400 mb-2">
+              Deep Strategic Engineering
+            </div>
+            <h2 className="font-['Big_Shoulders_Display'] text-4xl sm:text-5xl font-black uppercase text-white">
+              Built for Modern Football Thinkers
             </h2>
-            <p className="text-slate-400 text-sm mt-2">
-              Every server operates as an autonomous competitive realm with persistent club ownership and verified budgets.
+            <p className="text-slate-400 text-sm mt-3 text-balance">
+              Every detail is calibrated to mirror realistic club dynamics — from player stamina wear to authentic tactical formations.
             </p>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            {/* Pillar 1 */}
-            <div className="p-6 rounded-2xl bg-[#09150f] border border-white/5 hover:border-emerald-500/40 transition-colors group">
-              <div className="w-12 h-12 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-400 mb-5 group-hover:scale-110 transition-transform">
-                <Globe2 className="w-6 h-6" />
+            {/* Feature 1 */}
+            <div className="liquid-glass-card rounded-2xl p-6 sm:p-7 space-y-4">
+              <div className="w-12 h-12 rounded-xl bg-emerald-950 border border-emerald-500/30 flex items-center justify-center text-emerald-400">
+                <SlidersHorizontal className="w-6 h-6" />
               </div>
-              <h3 className="font-['Big_Shoulders_Display'] text-2xl font-bold uppercase text-white mb-2">
-                30 Dedicated Servers
+              <h3 className="font-['Big_Shoulders_Display'] text-2xl font-bold uppercase text-white">
+                Team-Wide Effort System
               </h3>
-              <p className="text-slate-400 text-xs sm:text-sm leading-relaxed">
-                Connect to servers ranging from EU01 (Europe Central) to ENG02, ESP04, BRA09, and WLD30 with distinct leagues and low ping.
+              <p className="text-slate-300 text-sm leading-relaxed">
+                One unified selector governs your squad's work rate: <strong className="text-white">Medium</strong>, <strong className="text-white">High</strong>, or <strong className="text-white">Extreme</strong>. 
+                Experience realistic stamina depletion (~14%, ~22%, ~32%) matching physical pressing intensity.
               </p>
+              <div className="text-xs font-mono text-slate-400 pt-2 border-t border-white/5 flex items-center justify-between">
+                <span>Stamina Consumption</span>
+                <span className="text-emerald-400 font-bold tabular-nums">14% · 22% · 32%</span>
+              </div>
             </div>
 
-            {/* Pillar 2 */}
-            <div className="p-6 rounded-2xl bg-[#09150f] border border-white/5 hover:border-emerald-500/40 transition-colors group">
-              <div className="w-12 h-12 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-400 mb-5 group-hover:scale-110 transition-transform">
+            {/* Feature 2 */}
+            <div id="formations" className="liquid-glass-card rounded-2xl p-6 sm:p-7 space-y-4">
+              <div className="w-12 h-12 rounded-xl bg-emerald-950 border border-emerald-500/30 flex items-center justify-center text-emerald-400">
                 <Layers className="w-6 h-6" />
               </div>
-              <h3 className="font-['Big_Shoulders_Display'] text-2xl font-bold uppercase text-white mb-2">
-                900 Unique Clubs
+              <h3 className="font-['Big_Shoulders_Display'] text-2xl font-bold uppercase text-white">
+                15 Tactical Formations
               </h3>
-              <p className="text-slate-400 text-xs sm:text-sm leading-relaxed">
-                Original realistic AI-crafted institutions like <em>Northbridge FC</em>, <em>Royal Vesterholm</em>, and <em>Ironvale Athletic</em> with full histories.
+              <p className="text-slate-300 text-sm leading-relaxed">
+                Choose from 15 master shapes including 4-4-2, 4-3-3, 4-2-3-1, 3-5-2, 4-2-2-2, and 5-4-1. 
+                Preview coordinates instantly on the tactical mini-pitch and swap starters seamlessly from your 11 bench reserves.
               </p>
-            </div>
-
-            {/* Pillar 3 */}
-            <div className="p-6 rounded-2xl bg-[#09150f] border border-white/5 hover:border-emerald-500/40 transition-colors group">
-              <div className="w-12 h-12 rounded-xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-amber-400 mb-5 group-hover:scale-110 transition-transform">
-                <Coins className="w-6 h-6" />
+              <div className="text-xs font-mono text-slate-400 pt-2 border-t border-white/5 flex items-center justify-between">
+                <span>Tactical Layouts</span>
+                <span className="text-emerald-400 font-bold tabular-nums">15 Formations</span>
               </div>
-              <h3 className="font-['Big_Shoulders_Display'] text-2xl font-bold uppercase text-white mb-2">
-                Strict €100,000,000 Budget
+            </div>
+
+            {/* Feature 3 */}
+            <div id="servers" className="liquid-glass-card rounded-2xl p-6 sm:p-7 space-y-4">
+              <div className="w-12 h-12 rounded-xl bg-emerald-950 border border-emerald-500/30 flex items-center justify-center text-emerald-400">
+                <Compass className="w-6 h-6" />
+              </div>
+              <h3 className="font-['Big_Shoulders_Display'] text-2xl font-bold uppercase text-white">
+                30 Persistent Servers
               </h3>
-              <p className="text-slate-400 text-xs sm:text-sm leading-relaxed">
-                Every newly claimed club is assigned an exact €100M warchest directly on the backend database. Never reset on refresh.
+              <p className="text-slate-300 text-sm leading-relaxed">
+                Compete across European, American, Asian, and International clusters. 
+                Each server hosts exactly 30 unique football clubs initialized with an identical €100,000,000 transfer warchest.
               </p>
+              <div className="text-xs font-mono text-slate-400 pt-2 border-t border-white/5 flex items-center justify-between">
+                <span>Total Active Clubs</span>
+                <span className="text-emerald-400 font-bold tabular-nums">900 Managed Clubs</span>
+              </div>
             </div>
           </div>
-        </div>
-      </section>
-
-      {/* Export to Bolt.new Banner */}
-      <section className="relative z-10 py-12 bg-gradient-to-r from-emerald-950/40 via-[#0a1811] to-emerald-950/40 border-t border-b border-emerald-500/20">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col md:flex-row items-center justify-between gap-6">
-          <div className="space-y-1 text-center md:text-left">
-            <span className="text-xs font-mono uppercase text-emerald-400 font-semibold tracking-wider">
-              DEVELOPER & CREATOR READY
-            </span>
-            <h3 className="font-['Big_Shoulders_Display'] text-3xl font-extrabold uppercase text-white">
-              Download Complete Project ZIP for Bolt.new
-            </h3>
-            <p className="text-slate-400 text-xs sm:text-sm">
-              Includes full source code, package.json, Express server, and 30-server seed data.
-            </p>
-          </div>
-
-          <button
-            onClick={onOpenDownloadModal}
-            className="px-6 py-3.5 bg-white/10 hover:bg-white/15 border border-white/20 rounded-xl text-white font-bold text-xs uppercase tracking-wider flex items-center gap-3 transition-colors cursor-pointer shrink-0"
-          >
-            <Download className="w-4 h-4 text-emerald-400" />
-            <span>Download Project ZIP</span>
-          </button>
         </div>
       </section>
 
       {/* Footer */}
-      <footer className="relative z-10 mt-auto py-8 bg-[#040806] border-t border-white/5 text-center text-xs text-slate-500">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-4">
-          <div className="flex items-center gap-2">
-            <Shield className="w-4 h-4 text-emerald-500" />
-            <span className="font-['Big_Shoulders_Display'] text-lg font-bold text-slate-300 uppercase tracking-wide">
-              Manager Nol
-            </span>
-            <span className="text-slate-600">|</span>
-            <span className="text-[11px] font-mono">v1.0.0 Production</span>
+      <footer className="relative z-10 py-10 border-t border-white/[0.08] bg-[#020503]">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs font-mono text-slate-500">
+          <div className="flex items-center gap-2 text-slate-400">
+            <span className="font-bold text-white">MANAGER NOL</span>
+            <span>·</span>
+            <span>Tactical Football Simulation</span>
+            <span>·</span>
+            <span className="tabular-nums">2026 Season</span>
           </div>
-          <p className="text-[11px] font-mono text-slate-500">
-            30 Dedicated Servers • 900 Clubs • €100,000,000 Warchest Initialized
-          </p>
+
+          <div className="flex items-center gap-6">
+            <button
+              onClick={onOpenDownloadModal}
+              className="hover:text-emerald-400 transition-colors cursor-pointer"
+            >
+              Export Project ZIP
+            </button>
+            <button
+              onClick={() => onOpenAuth('login')}
+              className="hover:text-emerald-400 transition-colors cursor-pointer"
+            >
+              Sign In
+            </button>
+            <button
+              onClick={() => onOpenAuth('register')}
+              className="text-emerald-400 hover:text-emerald-300 transition-colors font-semibold cursor-pointer"
+            >
+              Register
+            </button>
+          </div>
         </div>
       </footer>
     </div>

@@ -2,22 +2,37 @@ import fs from 'node:fs';
 import path from 'node:path';
 import crypto from 'node:crypto';
 import { SERVERS_LIST, ServerDefinition } from './data/serverNames.ts';
-import { generateAllClubs, ClubRecord } from './data/clubSeed.ts';
+import { generateAllClubs } from './data/clubSeed.ts';
 
 export type PlayerRank = 'Weak' | 'Average' | 'Strong' | 'Worldclass' | 'Top Tier';
 export type StaminaCondition = 'Great' | 'Tired' | 'Exhausted';
+export type PlayerPosition = 'GK' | 'CB' | 'LB' | 'RB' | 'CDM' | 'CM' | 'CAM' | 'LM' | 'RM' | 'LW' | 'RW' | 'ST';
+export type PositionCategory = 'Goalkeeper' | 'Defender' | 'Midfielder' | 'Attacker';
 
 export interface Player {
   id: string;
+  number: number;
   name: string;
+  position: PlayerPosition;
+  positionCategory: PositionCategory;
   rank: PlayerRank;
+  age: number;
+  nationality: string;
+  preferredFoot: 'Right' | 'Left' | 'Both';
   stamina: number;
   condition: StaminaCondition;
+  pace: number;
+  shooting: number;
+  passing: number;
+  dribbling: number;
+  defending: number;
+  physical: number;
 }
 
 export interface LineupConfig {
   formation: string;
-  startingPlayers: { playerId: string; position: string; effort: 'Medium' | 'High' | 'Extreme' }[];
+  teamEffort: 'Medium' | 'High' | 'Extreme';
+  startingPlayers: { playerId: string; position: string }[];
 }
 
 export interface ClubRecord {
@@ -87,7 +102,7 @@ export function initDatabase(): DatabaseSchema {
       if (db && db.servers && db.servers.length === 30 && Object.keys(db.clubs).length === 900) {
         // Migration: ensure squad and lineup exist for existing clubs
         for (const clubId in db.clubs) {
-          if (!db.clubs[clubId].squad) {
+          if (!db.clubs[clubId].squad || !db.clubs[clubId].squad[0]?.number) {
             db.clubs[clubId].squad = generateSquad();
             db.clubs[clubId].lineup = null;
           }
@@ -120,17 +135,82 @@ export function saveDatabaseSync(): void {
   fs.renameSync(tempFile, DB_FILE);
 }
 
+const FIRST_NAMES = [
+  'Lucas', 'Matteo', 'Alexander', 'Marcus', 'Julian', 'Gabriel', 'Kasper', 'Hugo', 'Liam', 'Darius',
+  'Viktor', 'Leon', 'Florian', 'Adrian', 'Stefan', 'Oscar', 'Felix', 'Nico', 'Dominik', 'Erik',
+  'Tobias', 'Lars', 'Rafael', 'Marco', 'Soren', 'Christian', 'Jonas', 'Emil', 'Milan', 'Dante'
+];
+
+const LAST_NAMES = [
+  'Lindqvist', 'Vandenberg', 'Moretti', 'Schneider', 'Thornton', 'Vestergaard', 'Kovalev', 'Althaus', 'Navarro', 'Svensson',
+  'Castiglione', 'Holt', 'Bellingham', 'Kruger', 'Fontana', 'Lefebvre', 'Hadjuk', 'Birkeland', 'Vargas', 'Nowak',
+  'Mercer', 'Caldwell', 'De Jong', 'Rostova', 'Larsson', 'Zimmerman', 'Brandt', 'Kovacic', 'Salas', 'Garrido'
+];
+
+const NATIONALITIES = ['Germany', 'England', 'Spain', 'France', 'Italy', 'Netherlands', 'Portugal', 'Brazil', 'Argentina', 'Sweden', 'Denmark', 'Norway', 'Belgium', 'Austria', 'Switzerland'];
+
+const SQUAD_POSITION_TEMPLATE: { pos: PlayerPosition; cat: PositionCategory }[] = [
+  { pos: 'GK', cat: 'Goalkeeper' },
+  { pos: 'RB', cat: 'Defender' },
+  { pos: 'CB', cat: 'Defender' },
+  { pos: 'CB', cat: 'Defender' },
+  { pos: 'LB', cat: 'Defender' },
+  { pos: 'CDM', cat: 'Midfielder' },
+  { pos: 'RM', cat: 'Midfielder' },
+  { pos: 'CM', cat: 'Midfielder' },
+  { pos: 'ST', cat: 'Attacker' },
+  { pos: 'CAM', cat: 'Midfielder' },
+  { pos: 'LM', cat: 'Midfielder' },
+  { pos: 'GK', cat: 'Goalkeeper' },
+  { pos: 'CB', cat: 'Defender' },
+  { pos: 'LB', cat: 'Defender' },
+  { pos: 'RB', cat: 'Defender' },
+  { pos: 'CDM', cat: 'Midfielder' },
+  { pos: 'CM', cat: 'Midfielder' },
+  { pos: 'CAM', cat: 'Midfielder' },
+  { pos: 'RW', cat: 'Attacker' },
+  { pos: 'LW', cat: 'Attacker' },
+  { pos: 'ST', cat: 'Attacker' },
+  { pos: 'ST', cat: 'Attacker' }
+];
+
 function generateSquad(): Player[] {
   const squad: Player[] = [];
-  const names = ['Silva', 'Santos', 'Müller', 'Schmidt', 'Smith', 'Jones', 'Garcia', 'Hernandez', 'Kim', 'Tanaka', 'Ibrahim', 'Okonkwo', 'Rossi', 'Bianchi', 'Dupont', 'Martin', 'Petrov', 'Ivanov', 'Kovács', 'Nagy'];
   
   for (let i = 0; i < 22; i++) {
+    const template = SQUAD_POSITION_TEMPLATE[i];
+    const firstName = FIRST_NAMES[(i * 3 + Math.floor(Math.random() * 5)) % FIRST_NAMES.length];
+    const lastName = LAST_NAMES[(i * 7 + Math.floor(Math.random() * 5)) % LAST_NAMES.length];
+    const rank = getRandomRank();
+
+    // Base attributes determined by player rank
+    let baseStat = 65;
+    if (rank === 'Top Tier') baseStat = 88;
+    else if (rank === 'Worldclass') baseStat = 82;
+    else if (rank === 'Strong') baseStat = 75;
+    else if (rank === 'Average') baseStat = 67;
+    else if (rank === 'Weak') baseStat = 58;
+
+    const jitter = () => Math.round((Math.random() - 0.5) * 8);
+
     squad.push({
       id: crypto.randomUUID(),
-      name: `${names[i % names.length]} ${String.fromCharCode(65 + i)}`,
-      rank: getRandomRank(),
+      number: i + 1,
+      name: `${firstName} ${lastName}`,
+      position: template.pos,
+      positionCategory: template.cat,
+      rank,
+      age: 19 + ((i * 3 + Math.floor(Math.random() * 4)) % 15), // 19 to 33
+      nationality: NATIONALITIES[(i * 2) % NATIONALITIES.length],
+      preferredFoot: i % 4 === 0 ? 'Left' : i % 5 === 0 ? 'Both' : 'Right',
       stamina: 100,
-      condition: 'Great'
+      condition: 'Great',
+      pace: Math.min(99, Math.max(45, baseStat + jitter())),
+      shooting: Math.min(99, Math.max(45, baseStat + jitter())),
+      passing: Math.min(99, Math.max(45, baseStat + jitter())),
+      dribbling: Math.min(99, Math.max(45, baseStat + jitter())),
+      defending: Math.min(99, Math.max(45, baseStat + jitter())),
+      physical: Math.min(99, Math.max(45, baseStat + jitter()))
     });
   }
   return squad;
@@ -138,11 +218,11 @@ function generateSquad(): Player[] {
 
 function getRandomRank(): PlayerRank {
   const rand = Math.random() * 100;
-  if (rand < 25) return 'Weak';
-  if (rand < 60) return 'Average';
-  if (rand < 85) return 'Strong';
-  if (rand < 97) return 'Worldclass';
-  return 'Top Tier';
+  if (rand < 25) return 'Weak';       // 25%
+  if (rand < 60) return 'Average';    // 35% (25-60)
+  if (rand < 85) return 'Strong';     // 25% (60-85)
+  if (rand < 97) return 'Worldclass'; // 12% (85-97)
+  return 'Top Tier';                  // 3% (97-100)
 }
 
 // Auth & Operations
@@ -255,22 +335,23 @@ export function claimClub(userId: string, serverId: string, clubId: string): { c
   return { club, server };
 }
 
-export function resignClub(userId: string): void {
+export function resignClub(userId: string): ClubRecord {
   const database = initDatabase();
   const user = database.users[userId];
   if (!user || !user.activeClubId) throw new Error('No club to resign from');
 
   const club = database.clubs[user.activeClubId];
-  if (club) {
-    club.managerId = null;
-    club.managerUsername = null;
-    club.lineup = null; // Clear lineup on resign
-  }
+  if (!club) throw new Error('Club not found');
+
+  club.managerId = null;
+  club.managerUsername = null;
+  club.lineup = null; // Clear lineup on resign
 
   user.activeClubId = null;
   user.activeServerId = null;
 
   saveDatabaseSync();
+  return club;
 }
 
 export function updateLineup(userId: string, lineup: LineupConfig): ClubRecord {
@@ -280,6 +361,10 @@ export function updateLineup(userId: string, lineup: LineupConfig): ClubRecord {
 
   const club = database.clubs[user.activeClubId];
   if (!club || club.managerId !== userId) throw new Error('Unauthorized');
+
+  if (!['Medium', 'High', 'Extreme'].includes(lineup.teamEffort)) {
+    throw new Error('Invalid team effort setting');
+  }
 
   // Validate Lineup: 11 unique players belonging to club
   if (lineup.startingPlayers.length !== 11) throw new Error('Lineup must have 11 players');
