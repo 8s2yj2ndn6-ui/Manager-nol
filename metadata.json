@@ -1,0 +1,6 @@
+{
+  "name": "Manager Nol - Football Management",
+  "description": "A premier dark-aesthetic football management simulation featuring 30 competitive servers, 900 unique clubs, real authentication, and tactical club ownership with €100,000,000 starting budgets.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
